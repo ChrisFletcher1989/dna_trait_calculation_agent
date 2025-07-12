@@ -158,7 +158,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     for i in range(1, len(probabilityOfPeople)):
         totalProbability *= probabilityOfPeople[i]
     return totalProbability
-     #TO DO! 1) Debug 2) Implement based on parent's genes and traits
+     #TO DO! 1) Debug 2) Implement based on parent's genes and traits 3) Handle mutation
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
     """
