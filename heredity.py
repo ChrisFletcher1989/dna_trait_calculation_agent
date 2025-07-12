@@ -139,8 +139,26 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
-
+    probabilityOfPeople=[]
+    totalProbability=1
+    for person in people:
+        if person in one_gene:
+            probOfGene=PROBS["gene"][1]
+        elif person in two_genes:
+            probOfGene=PROBS["gene"][2]
+        else:
+            probOfGene=PROBS["gene"][0]
+        if person in have_trait:
+            probOfTrait = PROBS["trait"][genes][True]
+        else:
+            probOfTrait = PROBS["trait"][genes][False]
+        # Calculate the joint probability for this person
+        probabilityOfPeople.append(probOfGene * probOfTrait)
+    # Combine the probabilities of all people
+    for i in range(1, len(probabilityOfPeople)):
+        totalProbability *= probabilityOfPeople[i]
+    return totalProbability
+     #TO DO! 1) Debug 2) Implement based on parent's genes and traits
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
     """
