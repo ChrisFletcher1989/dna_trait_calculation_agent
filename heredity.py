@@ -131,7 +131,6 @@ def powerset(s):
 def joint_probability(people, one_gene, two_genes, have_trait):
     """
     Compute and return a joint probability.
-
     The probability returned should be the probability that
         * everyone in set `one_gene` has one copy of the gene, and
         * everyone in set `two_genes` has two copies of the gene, and
@@ -139,30 +138,73 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    def chanceOfGeneFromParent(parent, genes):
+    def chanceOfGeneFromParent(genes):
         if genes==2:
             return 1-PROBS["mutation"]
         elif genes==1:
             return 0.5
         return PROBS["mutation"]
 
-    probabilityOfPeople=[]
-    totalProbability=1
+    joint_prob = 1
+
     for person in people:
-       if not people[person]["mother"] and not people[person]["father"]:
+        person_genes = (2 if person in two_genes else 1 if person in one_gene else 0)
+        if not people[person]['mother'] and not people[person]['father']:
             if person in one_gene:
-                probOfGene=PROBS["gene"][1]
+                gene_probability=PROBS["gene"][1]
             elif person in two_genes:
-                probOfGene=PROBS["gene"][2]
+                gene_probability=PROBS["gene"][2]
             else:
-                probOfGene=PROBS["gene"][0]
+                gene_probability=PROBS["gene"][0]
             if person in have_trait:
-                probOfTrait = PROBS["trait"][genes][True]
+                gene_probability = PROBS["trait"][False]
             else:
-                probOfTrait = PROBS["trait"][genes][False]
+                gene_probability = PROBS["trait"][True]
             # Calculate the joint probability for this person
-            probabilityOfPeople.append(probOfGene * probOfTrait)
-        else:
+            defaultProbabilityFromParent=(1-PROBS["mutation"]*0.5*PROBS["mutation"])
+        else: 
+            
+            if people[person]["father"]:
+                if people[person] in two_genes:
+                    genes=2
+                elif people[person] in one_gene:
+                    genes=1
+                else:
+                    genes=0
+                probabilityFromFather=chanceOfGeneFromParent(genes)
+            else: 
+                probabilityFromFather= defaultProbabilityFromParent
+            if people[person]["mother"]:
+                if people[person] in two_genes:
+                    genes=2
+                elif:
+                    people[person] in one_gene:
+                    genes=1
+                else:
+                    genes=0
+                probabilityFromMother=chanceOfGeneFromParent(genes)
+            else: 
+                probabilityFromMother= defaultProbabilityFromParent
+            if people[person] in two_genes:
+              gene_probability *= probabilityFromFather * probabilityFromMother
+            elif people[person] in one_gene:
+              gene_probability *= (1 - probabilityFromMother) * probabilityFromFather + (1 - probabilityFromFather) * probabilityFromMother
+            else:
+              gene_probability *= (1 - probabilityFromMother) * (1 - probabilityFromFather)
+        # Multiply by the probability of the person with X genes having / not having the trait:
+            if people[person] in have_trait:
+                trait=True
+            else:
+                trait=False
+
+            gene_probability *= PROBS['trait'][person_genes][trait]
+
+            joint_prob *= gene_probability
+
+    return joint_prob
+
+
+           
             #pseudo code to check:
             # parents listed
             # chance of getting from mother(0 v 0.5 v 1), chance of getting from father(0 v 0.5 v 1)
@@ -174,7 +216,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
 
 
 
-    # Combine the probabilities of all people
+    # Combine the probabilities of all people //memo: really needed?
     for i in range(1, len(probabilityOfPeople)):
         totalProbability *= probabilityOfPeople[i]
     return totalProbability
