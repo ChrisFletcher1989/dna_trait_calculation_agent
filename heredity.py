@@ -148,6 +148,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     joint_prob = 1
 
     for person in people:
+        gene_probability = 1
         person_genes = (2 if person in two_genes else 1 if person in one_gene else 0)
         if not people[person]['mother'] and not people[person]['father']:
             if person in one_gene:
@@ -156,62 +157,28 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                 gene_probability=PROBS["gene"][2]
             else:
                 gene_probability=PROBS["gene"][0]
-            if person in have_trait:
-                gene_probability = PROBS["trait"][False]
-            else:
-                gene_probability = PROBS["trait"][True]
             # Calculate the joint probability for this person
-            defaultProbabilityFromParent=(1-PROBS["mutation"]*0.5*PROBS["mutation"])
-        else: 
+        else:
+            father_genes = (2 if people[person]["father"] in two_genes else
+                            1 if people[person]["father"] in one_gene else 0)
+            mother_genes = (2 if people[person]["mother"] in two_genes else
+                            1 if people[person]["mother"] in one_gene else 0)
+            probabilityFromFather=chanceOfGeneFromParent(father_genes)
+            probabilityFromMother=chanceOfGeneFromParent(mother_genes)
             
-            if people[person]["father"]:
-                if people[person] in two_genes:
-                    genes=2
-                elif people[person] in one_gene:
-                    genes=1
-                else:
-                    genes=0
-                probabilityFromFather=chanceOfGeneFromParent(genes)
-            else: 
-                probabilityFromFather= defaultProbabilityFromParent
-            if people[person]["mother"]:
-                if people[person] in two_genes:
-                    genes=2
-                elif:
-                    people[person] in one_gene:
-                    genes=1
-                else:
-                    genes=0
-                probabilityFromMother=chanceOfGeneFromParent(genes)
-            else: 
-                probabilityFromMother= defaultProbabilityFromParent
-            if people[person] in two_genes:
+            if person in two_genes:
               gene_probability *= probabilityFromFather * probabilityFromMother
-            elif people[person] in one_gene:
+            elif person in one_gene: 
               gene_probability *= (1 - probabilityFromMother) * probabilityFromFather + (1 - probabilityFromFather) * probabilityFromMother
             else:
               gene_probability *= (1 - probabilityFromMother) * (1 - probabilityFromFather)
         # Multiply by the probability of the person with X genes having / not having the trait:
-            if people[person] in have_trait:
-                trait=True
-            else:
-                trait=False
 
-            gene_probability *= PROBS['trait'][person_genes][trait]
 
-            joint_prob *= gene_probability
+        gene_probability *= PROBS["trait"][person_genes][person in have_trait]
+        joint_prob *= gene_probability
 
     return joint_prob
-
-
-           
-            #pseudo code to check:
-            # parents listed
-            # chance of getting from mother(0 v 0.5 v 1), chance of getting from father(0 v 0.5 v 1)
-            # oneChance= then chance of trait based on one copy * (gene * chance from mother)*  (gene * chance from father)
-            # twoChance= then chance of trait based on two copies * (gene * chance from mother)*  (gene * chance from father)
-            # noneChance= then chance of trait based on zero copies *(gene * chance from mother)*  (gene * chance from father)
-            #hasTrait= oneChance * twoChance * noneChance
 
 
 
