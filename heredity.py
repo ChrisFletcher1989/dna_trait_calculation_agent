@@ -131,7 +131,6 @@ def powerset(s):
 def joint_probability(people, one_gene, two_genes, have_trait):
     """
     Compute and return a joint probability.
-
     The probability returned should be the probability that
         * everyone in set `one_gene` has one copy of the gene, and
         * everyone in set `two_genes` has two copies of the gene, and
@@ -139,26 +138,57 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    probabilityOfPeople=[]
-    totalProbability=1
+    def chanceOfGeneFromParent(genes):
+        if genes==2:
+            return 1-PROBS["mutation"]
+        elif genes==1:
+            return 0.5
+        return PROBS["mutation"]
+
+    joint_prob = 1
+
     for person in people:
-        if person in one_gene:
-            probOfGene=PROBS["gene"][1]
-        elif person in two_genes:
-            probOfGene=PROBS["gene"][2]
+        gene_probability = 1
+        person_genes = (2 if person in two_genes else 1 if person in one_gene else 0)
+        if not people[person]['mother'] and not people[person]['father']:
+            if person in one_gene:
+                gene_probability=PROBS["gene"][1]
+            elif person in two_genes:
+                gene_probability=PROBS["gene"][2]
+            else:
+                gene_probability=PROBS["gene"][0]
+            # Calculate the joint probability for this person
         else:
-            probOfGene=PROBS["gene"][0]
-        if person in have_trait:
-            probOfTrait = PROBS["trait"][genes][True]
-        else:
-            probOfTrait = PROBS["trait"][genes][False]
-        # Calculate the joint probability for this person
-        probabilityOfPeople.append(probOfGene * probOfTrait)
-    # Combine the probabilities of all people
+            father_genes = (2 if people[person]["father"] in two_genes else
+                            1 if people[person]["father"] in one_gene else 0)
+            mother_genes = (2 if people[person]["mother"] in two_genes else
+                            1 if people[person]["mother"] in one_gene else 0)
+            probabilityFromFather=chanceOfGeneFromParent(father_genes)
+            probabilityFromMother=chanceOfGeneFromParent(mother_genes)
+            
+            if person in two_genes:
+              gene_probability *= probabilityFromFather * probabilityFromMother
+            elif person in one_gene: 
+              gene_probability *= (1 - probabilityFromMother) * probabilityFromFather + (1 - probabilityFromFather) * probabilityFromMother
+            else:
+              gene_probability *= (1 - probabilityFromMother) * (1 - probabilityFromFather)
+        # Multiply by the probability of the person with X genes having / not having the trait:
+
+
+        gene_probability *= PROBS["trait"][person_genes][person in have_trait]
+        joint_prob *= gene_probability
+
+    return joint_prob
+
+
+
+
+    # Combine the probabilities of all people //memo: really needed?
     for i in range(1, len(probabilityOfPeople)):
         totalProbability *= probabilityOfPeople[i]
     return totalProbability
      #TO DO! 1) Debug 2) Implement based on parent's genes and traits
+
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
     """
